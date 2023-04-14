@@ -3,7 +3,7 @@ This script is integrated with a proposed ANC system for low frequencies in clos
 package []. The secondary or control source used is a compound source, consisting of two dipoles, which consist of
 low-volume sub-woofer loudspeakers with low-Bl(force factor) drivers. Therefore, the control source is a quadrupole.
 Each individual/chromosome is a set of positive real numbers, which are the three system parameters, two for the driving
-monopole amplitudes of each dipole (d_amplitude), and one for their phase difference (phase ??????).
+monopole amplitudes of each dipole (d_amplitude), and one for their phase difference (phase).
 
 The two amplitudes are levels in dB, relative to the initial driving amplitude of the compound source. This is set so
 that the secondary sound level at the measurement point is equal to the primary level, as first recorded in
