@@ -1,5 +1,31 @@
 """
-TODO .....................
+This script is integrated with a proposed ANC system for low frequencies in closed spaces [], using the ‘PyGAD’
+package []. The secondary or control source used is a compound source, consisting of two dipoles, which consist of
+low-volume sub-woofer loudspeakers with low-Bl(force factor) drivers. Therefore, the control source is a quadrupole.
+Each individual/chromosome is a set of positive real numbers, which are the three system parameters, two for the driving
+monopole amplitudes of each dipole (d_amplitude), and one for their phase difference (phase ??????).
+
+The two amplitudes are levels in dB, relative to the initial driving amplitude of the compound source. This is set so
+that the secondary sound level at the measurement point is equal to the primary level, as first recorded in
+(Recording Noise)
+The gene_space is {(1, 9.5, 0.5), (1, 9.5, 0.5), (0, 3*pi/2, pi/4)}, with 90deg step for phase and difference of the
+two amplitudes more than 9.5 dB is not acceptable as it will degenerate the quadrupole radiation features.
+
+The target of this strategy is to adapt the compound source radiation and coupling to the modal field through its
+driving parameters to attenuate the primary field at a selected point; the minimization of the primary field using
+the norm  of sound pressure at a discrete point of measurement by utilizing the partial sound destructive interference.
+The process of selecting the optimal driving parameters is followed each time for a given configuration. The fitness
+of each individual is assessed as the difference between the existing noise level,L_n, and the controlled level
+after applying the generated i-th driving parameters for the compound source,L_{i,g}: f_{i,g}=L_n - L_{i,g}
+
+The first 2 channels are dedicated the control signals, which play simultaneously with a subwoofer simulating the noise
+source, the third channel. A 1/3-octave band filter is applied to the microphone input signal, to not disorientate the
+evolution convergence in the presence of a possible event of external temporary sound disturbance.
+
+Note1: There is no need for a reference signal or correlation with the error signal. The proposed ANC system is
+independent of transfer functions between sources and error sensors.
+
+Note2: If more control sources are added, then the corresponding control signals should be given in play_rec_fun().
 """
 import pygad
 from scipy import signal
@@ -18,8 +44,8 @@ def generate_init_ampl_phase(d_amplitude, d_phase_range, phase):
     :param phase:
     :return:
     """
-    random_ints = np.random.randint(1, d_amplitude, size=(d_amplitude - 1, 2))
-    random_phase = np.random.uniform(0, d_phase_range, size=d_amplitude - 1) * phase
+    random_ints = np.random.randint(1, d_amplitude, size=(d_amplitude - 1, 2))     # 2-> posa 8a vgalei, 8elw 2
+    random_phase = np.random.randint(0, d_phase_range, size=d_amplitude - 1) * phase   #????????????? ta vgazei me polla dekadika
     return np.column_stack((random_ints, random_phase)).astype(float)
 
 
@@ -101,18 +127,18 @@ if __name__ == '__main__':
     seconds = 1
     duration = seconds * fs
     time = np.linspace(0, seconds, seconds * fs, False)
-    L_freq = 300
-    R_freq = 300
+    L_freq = 100
+    R_freq = 100
     frequencies = [L_freq - 20, L_freq, L_freq + 20]
-    pha = np.pi/2
+    pha = np.pi/4
     dipole_amplitude = 9
-    dipole_phase_range = 3
+    dipole_phase_range = 7
     init_ampl_phase = generate_init_ampl_phase(dipole_amplitude, dipole_phase_range, pha)
 
     popsize = len(init_ampl_phase)
     print(popsize)
     print(sd.query_devices())
-    sd.default.device = 1, 4  # 2, 8   # 2, 4
+    sd.default.device = 1, 3  # Insert audio I/O tags from query_devices()
     sd.default.dtype = [None, 'float64']
     sd.default.channels = 1, 2
 
@@ -144,7 +170,7 @@ if __name__ == '__main__':
         fitness_function = fitness_func
         num_generations = 10
         num_parents_mating = 3
-        gene_space = np.arange(1, 7.5, 0.5), np.arange(1, 7.5, 0.5), (0, np.pi/2, np.pi, 3*np.pi/2)
+        gene_space = np.arange(1, 9.5, 0.5), np.arange(1, 9.5, 0.5), (0, np.pi/2, np.pi, 3*np.pi/2)
         parent_selection_type = "sss"
         keep_parents = 3
         crossover_type = "single_point"
@@ -177,13 +203,9 @@ if __name__ == '__main__':
 
         # Returning the details of the best solution.
         solution, solution_fitness, solution_idx = ga_instance.best_solution()
-        print("**########################################################################################")
         print("Parameters of the best solution : {solution}".format(solution=solution))
-        print("**########################################################################################")
         print("Fitness value of the best solution :", "{:.1f}".format(solution_fitness))
-        print("**########################################################################################")
         print("Index of the best solution :", "{:.1f}".format(solution_idx))
-        print("**########################################################################################")
 
         if ga_instance.best_solution_generation != -1:
             print("Best fitness value reached after generations ",
