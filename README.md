@@ -1,4 +1,4 @@
-# GA LowFrequency ANC CompoundSources
+# GA_Low-Frequency ANC_Compound Sources
 GA-based ANC system with compound low-frequency sources
 
 This script is integrated with a proposed ANC system for low frequencies in closed spaces [], using the ‘PyGAD’
