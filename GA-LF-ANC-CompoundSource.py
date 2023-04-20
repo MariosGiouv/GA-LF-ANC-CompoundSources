@@ -1,31 +1,13 @@
 """
-This script is integrated with a proposed ANC system for low frequencies in closed spaces [], using the ‘PyGAD’
-package []. The secondary or control source used is a compound source, consisting of two dipoles, which consist of
-low-volume sub-woofer loudspeakers with low-Bl(force factor) drivers. Therefore, the control source is a quadrupole.
-Each individual/chromosome is a set of positive real numbers, which are the three system parameters, two for the driving
-monopole amplitudes of each dipole (d_amplitude), and one for their phase difference (phase).
-
-The two amplitudes are levels in dB, relative to the initial driving amplitude of the compound source. This is set so
-that the secondary sound level at the measurement point is equal to the primary level, as first recorded in
-(Recording Noise)
-The gene_space is {(1, 9.5, 0.5), (1, 9.5, 0.5), (0, 3*pi/2, pi/4)}, with 90deg step for phase and difference of the
-two amplitudes more than 9.5 dB is not acceptable as it will degenerate the quadrupole radiation features.
-
+This script is integrated with a proposed ANC system for low frequencies in closed spaces, using the ‘PyGAD’package.
+The secondary, or control, source used is a compound source, a quadrupole, consisting of two dipoles, which consist of
+small subwoofers.
 The target of this strategy is to adapt the compound source radiation and coupling to the modal field through its
 driving parameters to attenuate the primary field at a selected point; the minimization of the primary field using
 the norm  of sound pressure at a discrete point of measurement by utilizing the partial sound destructive interference.
-The process of selecting the optimal driving parameters is followed each time for a given configuration. The fitness
-of each individual is assessed as the difference between the existing noise level,L_n, and the controlled level
-after applying the generated i-th driving parameters for the compound source,L_{i,g}: f_{i,g}=L_n - L_{i,g}
-
-The first 2 channels are dedicated the control signals, which play simultaneously with a subwoofer simulating the noise
-source, the third channel. A 1/3-octave band filter is applied to the microphone input signal, to not disorientate the
-evolution convergence in the presence of a possible event of external temporary sound disturbance.
-
-Note1: There is no need for a reference signal or correlation with the error signal. The proposed ANC system is
-independent of transfer functions between sources and error sensors.
-
-Note2: If more control sources are added, then the corresponding control signals should be given in play_rec_fun().
+The process of selecting the optimal driving parameters is followed each time for a given configuration. The fitness of
+each individual is assessed as the difference between the existing noise level, and the controlled level after applying
+the generated i-th driving parameters for the compound source.
 """
 
 import pygad
@@ -39,14 +21,16 @@ import pylab
 
 def generate_init_ampl_phase(d_amplitude, d_phase_range, phase):
     """
-    TODO Generates the init_ampl_phase array with random values
+    TODO Generates the initial population, init_ampl_phase array, with random values
     :param d_amplitude:
     :param d_phase_range:
     :param phase:
     :return:
     """
-    random_ints = np.random.randint(1, d_amplitude, size=(d_amplitude - 1, 2))     # 2-> posa 8a vgalei, 8elw 2
-    random_phase = np.random.randint(0, d_phase_range, size=d_amplitude - 1) * phase   #????????????? ta vgazei me polla dekadika
+    # random_ints = np.random.randint(1, d_amplitude, size=(d_amplitude - 1, 2))
+    # random_phase = np.random.randint(0, d_phase_range, size=d_amplitude - 1) * phase
+    random_ints = np.random.randint(1, d_amplitude, size=(40, 2))
+    random_phase = np.random.randint(0, d_phase_range, size=40) * phase
     return np.column_stack((random_ints, random_phase)).astype(float)
 
 
@@ -99,15 +83,14 @@ def fitness_func(sol, solution_idx):
         fitness = noise_level - get_db((play_rec_fun(sol)))
         print('fitness is:', "{:.1f}".format(fitness))
     else:
-        fitness = -20000
-        print('The two amplitudes differ more than 9 dB ! ! ! : {}, {}'.format(sol[0], sol[1]))
+        fitness = -1000
+        print('The two amplitudes differ more than 9.5 dB! : {}, {}'.format(sol[0], sol[1]))
         print('fitness is:', "{:.1f}".format(fitness))
     return fitness
 
 
 def on_generation(ga_instance):
     """
-    TODO
     :param ga_instance:
     :return:
     """
@@ -158,7 +141,7 @@ if __name__ == '__main__':
         width = 5.0 / nyq_rate
         ripple_db = 60.0
         N, beta = kaiserord(ripple_db, width)
-        cutoff_hz = [frequencies[0] / nyq_rate, frequencies[2] / nyq_rate]  # cutoff_hz = 400 / nyq_rate
+        cutoff_hz = [frequencies[0] / nyq_rate, frequencies[2] / nyq_rate]
         taps = firwin(N, cutoff_hz, window=('kaiser', beta), pass_zero=False)
 
         # filtering mic input noise
@@ -169,17 +152,18 @@ if __name__ == '__main__':
 
         # TODO .......................... GA ................................................................
         fitness_function = fitness_func
-        num_generations = 10
-        num_parents_mating = 3
-        gene_space = np.arange(1, 9.5, 0.5), np.arange(1, 9.5, 0.5), (0, np.pi/2, np.pi, 3*np.pi/2)
-        parent_selection_type = "sss"
-        keep_parents = 3
+        num_generations = 40
+        num_parents_mating = 28
+        gene_space = np.arange(1, 9.5, 0.5), np.arange(1, 9.5, 0.5), (0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi, 5*np.pi/4,
+                                                                      6*np.pi/4, 7*np.pi/4)
+        parent_selection_type = "rank"
+        keep_parents = 4
         crossover_type = "single_point"
-
-        # mutation_type = "random"
-        # mutation_probability = 0.6
-        mutation_type = "adaptive"
-        mutation_probability = [0.8, 0.1]      # ******** better prob=0.1 for low-quality solutions
+        crossover_probability = 0.75
+        mutation_type = "random"
+        mutation_probability = 0.15
+        # mutation_type = "adaptive"
+        # mutation_probability = [0.3, 0.1]
         last_fitness = 0
 
         # TODO
@@ -198,8 +182,6 @@ if __name__ == '__main__':
 
         # Running the GA to optimize the parameters of the function.
         ga_instance.run()
-
-        # After the generations end, some plots show summarizing how the outputs/fitness values evolve over generations.
         ga_instance.plot_result()
 
         # Returning the details of the best solution.
