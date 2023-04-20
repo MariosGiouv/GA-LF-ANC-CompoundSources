@@ -1,6 +1,6 @@
-###GA_LowFrequency_ANC_CompoundSources
+### GA_LowFrequency_ANC_CompoundSources
 
-####GA-based ANC system with compound low-frequency sources
+#### GA-based ANC system with compound low-frequency sources
 
 This script is integrated with a proposed ANC system for low frequencies in closed spaces, using the *‘PyGAD’*
 package. The secondary or control source used is a compound source, a quadrupole, consisting of two dipoles, which 
