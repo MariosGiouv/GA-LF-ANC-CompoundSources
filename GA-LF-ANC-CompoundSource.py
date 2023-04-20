@@ -27,8 +27,6 @@ def generate_init_ampl_phase(d_amplitude, d_phase_range, phase):
     :param phase:
     :return:
     """
-    # random_ints = np.random.randint(1, d_amplitude, size=(d_amplitude - 1, 2))
-    # random_phase = np.random.randint(0, d_phase_range, size=d_amplitude - 1) * phase
     random_ints = np.random.randint(1, d_amplitude, size=(40, 2))
     random_phase = np.random.randint(0, d_phase_range, size=40) * phase
     return np.column_stack((random_ints, random_phase)).astype(float)
@@ -97,7 +95,9 @@ def on_generation(ga_instance):
     global last_fitness
     print("Generation = ", "{:.1f}".format(ga_instance.generations_completed))
     print('Fitness  =', "{:.1f}".format(ga_instance.best_solution()[1]))
-    print("last_gen_fitness = {last_gen_fitness}".format(last_gen_fitness=ga_instance.last_generation_fitness))
+    # print("last_gen_fitness = {last_gen_fitness}".format(last_gen_fitness=ga_instance.last_generation_fitness))
+    print("last_gen_fitness = {last_gen_fitness}".format(last_gen_fitness=[float('%.1f' % elem) for elem in
+                                                                           ga_instance.last_generation_fitness]))
     print("Change = ", "{:.1f}".format(ga_instance.best_solution()[1] - last_fitness))
     last_fitness = ga_instance.best_solution()[1]
 
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     fs = 44100
     down_sample = 10
     fs_new = int(fs / down_sample)
-    seconds = 1
+    seconds = 2
     duration = seconds * fs
     time = np.linspace(0, seconds, seconds * fs, False)
     L_freq = 100
@@ -153,7 +153,7 @@ if __name__ == '__main__':
         # TODO .......................... GA ................................................................
         fitness_function = fitness_func
         num_generations = 40
-        num_parents_mating = 28
+        num_parents_mating =28
         gene_space = np.arange(1, 9.5, 0.5), np.arange(1, 9.5, 0.5), (0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi, 5*np.pi/4,
                                                                       6*np.pi/4, 7*np.pi/4)
         parent_selection_type = "rank"
