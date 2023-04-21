@@ -1,7 +1,7 @@
 """
 This script is integrated with a proposed ANC system for low frequencies in closed spaces, using the ‘PyGAD’package.
 The secondary, or control, source used is a compound source, a quadrupole, consisting of two dipoles, which consist of
-small subwoofers.
+small sub-woofers.
 The target of this strategy is to adapt the compound source radiation and coupling to the modal field through its
 driving parameters to attenuate the primary field at a selected point; the minimization of the primary field using
 the norm  of sound pressure at a discrete point of measurement by utilizing the partial sound destructive interference.
@@ -111,8 +111,8 @@ if __name__ == '__main__':
     seconds = 2
     duration = seconds * fs
     time = np.linspace(0, seconds, seconds * fs, False)
-    L_freq = 100
-    R_freq = 100
+    L_freq = 50
+    R_freq = 50
     frequencies = [L_freq - 20, L_freq, L_freq + 20]
     pha = np.pi/4
     dipole_amplitude = 9
@@ -136,7 +136,7 @@ if __name__ == '__main__':
         sd.wait()
         noise_recording = np.squeeze(noise_recording)
 
-        # setting filtering params
+        # setting filtering parameters
         nyq_rate = fs / 2.0
         width = 5.0 / nyq_rate
         ripple_db = 60.0
@@ -150,31 +150,26 @@ if __name__ == '__main__':
         noise_level = get_db(noise_range)
         print('Noise level:', "{:.1f}".format(noise_level))
 
-        # TODO .......................... GA ................................................................
+        # GA - choose either random or adaptive mutation
         fitness_function = fitness_func
-        num_generations = 40
-        num_parents_mating =28
         gene_space = np.arange(1, 9.5, 0.5), np.arange(1, 9.5, 0.5), (0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi, 5*np.pi/4,
-                                                                      6*np.pi/4, 7*np.pi/4)
-        parent_selection_type = "rank"
-        keep_parents = 4
-        crossover_type = "single_point"
-        crossover_probability = 0.75
+                                                                      6*np.pi/4, 7*np.pi/4)   
         mutation_type = "random"
         mutation_probability = 0.15
         # mutation_type = "adaptive"
         # mutation_probability = [0.3, 0.1]
         last_fitness = 0
 
-        # TODO
+        # GA parameters
         ga_instance = pygad.GA(initial_population=init_ampl_phase,
-                               num_generations=num_generations,
-                               num_parents_mating=num_parents_mating,
+                               num_generations=2,
+                               num_parents_mating=28,
                                fitness_func=fitness_function,
                                gene_space=gene_space,
-                               parent_selection_type=parent_selection_type,
-                               keep_parents=keep_parents,
-                               crossover_type=crossover_type,
+                               parent_selection_type="rank",
+                               keep_parents=4,
+                               crossover_type="single_point",
+                               crossover_probability=0.75,
                                mutation_probability=mutation_probability,
                                mutation_type=mutation_type,
                                on_generation=on_generation,
