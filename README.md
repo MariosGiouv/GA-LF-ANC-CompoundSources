@@ -24,15 +24,21 @@ The first 2 channels are dedicated to control signals, which play simultaneously
 noise source, the third channel. A 1/3-octave band filter is applied to the microphone input signal, to not 
 disorientate the evolution convergence in the presence of a possible event of external sound disturbance.
 
-*Note1:* There is no need for a reference signal or correlation with the error signal. The proposed ANC system is
+*Note 1:* There is no need for a reference signal or correlation with the error signal. The proposed ANC system is
 independent of transfer functions between sources and error sensors.
 
-*Note2:* If more control sources are added, then the corresponding control signals should be given in
+*Note 2:* If more control sources are added, then the corresponding control signals should be given in
 *play_rec_fun()*.
 
-*Note3:* You can use conventional sub-woofers in multipole/compound configurations.
+*Note 3:* You can use conventional sub-woofers in multipole/compound configurations.
 
-*Note4:* The *print(sd.query_devices())* shows the audio [I, O] tags that should be put in *sd.default.device*.  
+*Note 4:* The *print(sd.query_devices())* shows the audio [I, O] tags that should be put in *sd.default.device*.  
+
+*Note 5:* The *ampl* and *ampl_noise* are set so that the recording level at the measurement point is equal, at the
+ beginning.
+
+*Note 6:* From query_devices(), insert the proper audio stream I/O tags of your system. The two tags are the same for
+ ASIO drivers
 
 
 [1] *Gad, A.F. PyGAD: An Intuitive Genetic Algorithm Python Library. arXiv 2021, arXiv:2106.06158.

@@ -1,13 +1,18 @@
 """
 This script is integrated with a proposed ANC system for low frequencies in closed spaces, using the ‘PyGAD’package.
+
 The secondary, or control, source used is a compound source, a quadrupole, consisting of two dipoles, which consist of
 small sub-woofers.
+
 The target of this strategy is to adapt the compound source radiation and coupling to the modal field through its
 driving parameters to attenuate the primary field at a selected point; the minimization of the primary field using
 the norm  of sound pressure at a discrete point of measurement by utilizing the partial sound destructive interference.
+
 The process of selecting the optimal driving parameters is followed each time for a given configuration. The fitness of
 each individual is assessed as the difference between the existing noise level, and the controlled level after applying
 the generated i-th driving parameters for the compound source.
+
+The ampl and ampl_noise are set so that the recording level at the measurement point is equal, at the beginning.
 """
 
 import pygad
@@ -27,6 +32,7 @@ def generate_init_ampl_phase(d_amplitude, d_phase_range, phase):
     :param phase:
     :return:
     """
+    # N = 40 is a fair good population size.
     random_ints = np.random.randint(1, d_amplitude, size=(40, 2))
     random_phase = np.random.randint(0, d_phase_range, size=40) * phase
     return np.column_stack((random_ints, random_phase)).astype(float)
@@ -39,13 +45,22 @@ def play_rec_fun(sol):
     :return:
     """
     print('---->> Recording Audio ampl, ampl2, phase = {}, {}, {}'.format(sol[0], sol[1], sol[2] * 180 / np.pi))
-    Lchannel = 0.2 * (10 ** (sol[0] / 20)) * np.sin(2 * np.pi * L_freq * time + 0)
-    Rchannel = 0.2 * (10 ** (sol[1] / 20)) * np.sin(2 * np.pi * R_freq * time + sol[2])
-    stereo_sine = np.vstack((Lchannel, Rchannel))
-    stereo_array = stereo_sine.transpose()
-    my_recording = sd.playrec(stereo_array, fs, blocking=True)
+
+    Lchannel = ampl * (10 ** (sol[0] / 20)) * np.sin(2 * np.pi * L_freq * time + 0)
+    Rchannel = ampl * (10 ** (sol[1] / 20)) * np.sin(2 * np.pi * R_freq * time + sol[2])
+    noise = ampl_noise * (10 ** (1 / 20)) * np.sin(2 * np.pi * L_freq * time + 0)
+
+    fade_duration = int(duration / 5)
+    LinFadeIn = np.append(np.linspace(0, 1, fade_duration), np.ones(duration - fade_duration))
+    LinFadeOut = np.append(np.ones(duration - fade_duration), np.linspace(1, 0, fade_duration))
+    total_sine = np.vstack((Lchannel * LinFadeIn * LinFadeOut, Rchannel * LinFadeIn * LinFadeOut,
+                            noise * LinFadeIn * LinFadeOut))
+    total_array = total_sine.transpose()
+
+    my_recording = sd.playrec(total_array, fs, channels=1, output_mapping=[1, 2, 3], blocking=True)
     my_recording = np.squeeze(my_recording)
     my_resampl_filt_rec = signal.decimate(my_recording, down_sample, n=None, ftype='fir', axis=-1, zero_phase=True)
+    # setting filtering parameters
     nyq_rate = fs_new / 2.0
     width = 5.0 / nyq_rate
     ripple_db = 60.0
@@ -118,21 +133,24 @@ if __name__ == '__main__':
     dipole_amplitude = 9
     dipole_phase_range = 7
     init_ampl_phase = generate_init_ampl_phase(dipole_amplitude, dipole_phase_range, pha)
-
+    ampl = 1
+    ampl_noise = ampl/10
     popsize = len(init_ampl_phase)
     print(popsize)
     print(sd.query_devices())
-    sd.default.device = 1, 3  # Insert audio I/O tags from query_devices()
+    # Insert audio stream I/O tags from query_devices(), same for ASIO drivers
+    sd.default.device = 1, 3
     sd.default.dtype = [None, 'float64']
-    sd.default.channels = 1, 2
 
     h, w = 2, 1
     pylab.figure(figsize=(12, 9))
     pylab.subplots_adjust(hspace=.7)
 
     try:
-        print('---->> Recording Noise....')     # noise SPL measurement
-        noise_recording = sd.rec((1 * duration))
+        # noise SPL measurement
+        print('---->> Recording Noise....')
+        noise_recording = sd.playrec(ampl_noise * (10 ** (1 / 20)) * np.sin(2 * np.pi * L_freq * time + 0), fs,
+                                     channels=1, output_mapping=3, blocking=True)
         sd.wait()
         noise_recording = np.squeeze(noise_recording)
 
@@ -150,10 +168,11 @@ if __name__ == '__main__':
         noise_level = get_db(noise_range)
         print('Noise level:', "{:.1f}".format(noise_level))
 
-        # GA - choose either random or adaptive mutation
+        # GA
         fitness_function = fitness_func
         gene_space = np.arange(1, 9.5, 0.5), np.arange(1, 9.5, 0.5), (0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi, 5*np.pi/4,
-                                                                      6*np.pi/4, 7*np.pi/4)   
+                                                                      6*np.pi/4, 7*np.pi/4)
+        # choose either random or adaptive mutation
         mutation_type = "random"
         mutation_probability = 0.15
         # mutation_type = "adaptive"
@@ -162,7 +181,7 @@ if __name__ == '__main__':
 
         # GA parameters
         ga_instance = pygad.GA(initial_population=init_ampl_phase,
-                               num_generations=2,
+                               num_generations=40,
                                num_parents_mating=28,
                                fitness_func=fitness_function,
                                gene_space=gene_space,
