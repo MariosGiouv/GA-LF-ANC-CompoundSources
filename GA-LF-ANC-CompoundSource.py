@@ -60,7 +60,7 @@ def play_rec_fun(sol):
     my_recording = sd.playrec(total_array, fs, channels=1, output_mapping=[1, 2, 3], blocking=True)
     my_recording = np.squeeze(my_recording)
     my_resampl_filt_rec = signal.decimate(my_recording, down_sample, n=None, ftype='fir', axis=-1, zero_phase=True)
-    # setting filtering parameters
+    # setting filter parameters
     nyq_rate = fs_new / 2.0
     width = 5.0 / nyq_rate
     ripple_db = 60.0
@@ -119,7 +119,7 @@ def on_generation(ga_instance):
 
 if __name__ == '__main__':
 
-    # TODO
+    # TODO GA evolution
     fs = 44100
     down_sample = 10
     fs_new = int(fs / down_sample)
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     print(popsize)
     print(sd.query_devices())
     # Insert audio stream I/O tags from query_devices(), same for ASIO drivers
-    sd.default.device = 1, 3
+    sd.default.device = 1, 1
     sd.default.dtype = [None, 'float64']
 
     h, w = 2, 1
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         sd.wait()
         noise_recording = np.squeeze(noise_recording)
 
-        # setting filtering parameters
+        # setting filter parameters
         nyq_rate = fs / 2.0
         width = 5.0 / nyq_rate
         ripple_db = 60.0
