@@ -24,6 +24,8 @@ The first 2 channels are dedicated to control signals, which play simultaneously
 noise source, the third channel. A 1/3-octave band filter is applied to the microphone input signal, to not 
 disorientate the evolution convergence in the presence of a possible event of external sound disturbance.
 
+The full research paper with the low-frequency noise attenuation results has been published and is available online [7].
+
 *Note 1:* There is no need for a reference signal or correlation with the error signal. The proposed ANC system is
 independent of transfer functions between sources and error sensors.
 
@@ -65,3 +67,6 @@ independent of transfer functions between sources and error sensors.
 [6] *Giouvanakis, M.; Sevastiadis, C.; Papanikolaou, G. Low-Frequency Noise Attenuation in a Closed Space using 
      Adaptive Di-517 rectivity Control Sources of a Quadrupole Type. Arch. Acoust. 2019, 44, 1, 71–78. 
      doi: 10.24425/aoa.2019.126353.*
+     
+[7] *Giouvanakis, M.; Sevastiadis, C.; Papanikolaou, G. Active Low-Frequency Noise Control Implementing Genetic Algorithm
+     on Mode Coupling of a Compound Source. Appl. Sci. 2023, 13, 6740. https://doi.org/10.3390/app13116740.*
