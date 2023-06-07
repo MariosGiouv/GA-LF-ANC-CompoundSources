@@ -44,7 +44,7 @@ independent of transfer functions between sources and error sensors.
 
 
 
-#### Special thanks to *Sotirios Tsakalidis* (linkedin.com/in/sotirios-tsakalidis) for his most valuable contribution.
+#### Special thanks to *Sotirios Tsakalidis* (linkedin.com/in/sotirios-tsakalidis) for his very valuable contribution.
 
 
 [1] *Gad, A.F. PyGAD: An Intuitive Genetic Algorithm Python Library. arXiv 2021, arXiv:2106.06158.
